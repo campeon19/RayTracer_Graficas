@@ -3,7 +3,7 @@
 from numpy.core.numeric import cross
 from gl import V3
 import matematica as mate
-import numpy as np
+from numpy import arctan2, arccos
 
 OPAQUE = 0
 REFLECTIVE = 1
@@ -14,7 +14,7 @@ WHITE = (1, 1, 1)
 
 class DirectionalLight(object):
     def __init__(self, direction=V3(0, -1, 0), intensity=1, color=WHITE):
-        self.direction = direction / np.linalg.norm(direction)
+        self.direction = mate.normalizar3D(direction)
         self.intensity = intensity
         self.color = color
 
@@ -64,12 +64,12 @@ class Sphere(object):
 
     def ray_intersect(self, orig, dir):
 
-        L = np.subtract(self.center, orig)
-        l = np.linalg.norm(L)
+        L = mate.restaVect(self.center, orig)
+        l = mate.normalizar3D(L)
 
-        tca = np.dot(L, dir)
+        tca = mate.productoPunto(L, dir)
 
-        d = (l**2 - tca**2)
+        d = (mate.productoPunto(L, L) - tca**2)
         if d > self.radius ** 2:
             return None
 
@@ -84,12 +84,12 @@ class Sphere(object):
             return None
 
         # P = O + t * D
-        hit = np.add(orig, t0 * np.array(dir))
-        normal = np.subtract(hit, self.center)
-        normal = normal / np.linalg.norm(normal)
+        hit = mate.sumaVec(orig, mate.multVectorxEscalar(dir, t0))
+        normal = mate.restaVect(hit, self.center)
+        normal = mate.normalizar3D(normal)
 
-        u = 1 - ((np.arctan2(normal[2], normal[0]) / (2 * np.pi)) + 0.5)
-        v = np.arccos(-normal[1]) / np.pi
+        u = 1 - ((arctan2(normal[2], normal[0]) / (2 * mate.pi)) + 0.5)
+        v = arccos(-normal[1]) / mate.pi
 
         uvs = (u, v)
 
@@ -107,13 +107,14 @@ class Plane(object):
         self.material = material
 
     def ray_intersect(self, orig, dir):
-        denom = np.dot(dir, self.normal)
+        denom = mate.productoPunto(dir, self.normal)
 
         if abs(denom) > 0.0001:
-            num = np.dot(np.subtract(self.position, orig), self.normal)
+            num = mate.productoPunto(mate.restaVect(
+                self.position, orig), self.normal)
             t = num / denom
             if t > 0:
-                hit = np.add(orig, t * np.array(dir))
+                hit = mate.sumaVec(orig, mate.multVectorxEscalar(dir, t))
 
                 return Intersect(distance=t,
                                  point=hit,
@@ -141,21 +142,21 @@ class AABB(object):
 
         # Sides
         self.planes.append(
-            Plane(np.add(position, V3(halfSizeX, 0, 0)), V3(1, 0, 0), material))
+            Plane(mate.sumaVec(position, V3(halfSizeX, 0, 0)), V3(1, 0, 0), material))
         self.planes.append(
-            Plane(np.add(position, V3(-halfSizeX, 0, 0)), V3(-1, 0, 0), material))
+            Plane(mate.sumaVec(position, V3(-halfSizeX, 0, 0)), V3(-1, 0, 0), material))
 
         # Up and down
         self.planes.append(
-            Plane(np.add(position, V3(0, halfSizeY, 0)), V3(0, 1, 0), material))
+            Plane(mate.sumaVec(position, V3(0, halfSizeY, 0)), V3(0, 1, 0), material))
         self.planes.append(
-            Plane(np.add(position, V3(0, -halfSizeY, 0)), V3(0, -1, 0), material))
+            Plane(mate.sumaVec(position, V3(0, -halfSizeY, 0)), V3(0, -1, 0), material))
 
         # Front and Back
         self.planes.append(
-            Plane(np.add(position, V3(0, 0, halfSizeZ)), V3(0, 0, 1), material))
+            Plane(mate.sumaVec(position, V3(0, 0, halfSizeZ)), V3(0, 0, 1), material))
         self.planes.append(
-            Plane(np.add(position, V3(0, 0, -halfSizeZ)), V3(0, 0, -1), material))
+            Plane(mate.sumaVec(position, V3(0, 0, -halfSizeZ)), V3(0, 0, -1), material))
 
         # Bounds
         epsilon = 0.001
@@ -211,78 +212,78 @@ class AABB(object):
                          sceneObject=self)
 
 
-class Triangle(object):
-    def __init__(self, center, size, material=Material()):
-        self.size = size
-        self.material = material
-        center2 = [center[0], center[1] * -1, center[2]]
-        self.center = center2
+# class Triangle(object):
+#     def __init__(self, center, size, material=Material()):
+#         self.size = size
+#         self.material = material
+#         center2 = [center[0], center[1] * -1, center[2]]
+#         self.center = center2
 
-        self.boundsMin = [0, 0, 0]
-        self.boundsMax = [0, 0, 0]
+#         self.boundsMin = [0, 0, 0]
+#         self.boundsMax = [0, 0, 0]
 
-        d = size/2
+#         d = size/2
 
-        self.v0 = [self.center[0], self.center[1] + d, self.center[2]]
-        self.v1 = [self.center[0] - d, self.center[1] - d, self.center[2]]
-        self.v2 = [self.center[0] + d, self.center[1] - d, self.center[2]]
+#         self.v0 = [self.center[0], self.center[1] + d, self.center[2]]
+#         self.v1 = [self.center[0] - d, self.center[1] - d, self.center[2]]
+#         self.v2 = [self.center[0] + d, self.center[1] - d, self.center[2]]
 
-        epsilon = 0.001
-        for i in range(3):
-            self.boundsMin[i] = self.center[i] - (epsilon + d)
-            self.boundsMax[i] = self.center[i] + (epsilon + d)
+#         epsilon = 0.001
+#         for i in range(3):
+#             self.boundsMin[i] = self.center[i] - (epsilon + d)
+#             self.boundsMax[i] = self.center[i] + (epsilon + d)
 
-    def ray_intersect(self, orig, dir):
+#     def ray_intersect(self, orig, dir):
 
-        A = np.subtract(self.v1, self.v0)
-        B = np.subtract(self.v2, self.v0)
-        N = np.cross(A, B)
+#         A = mate.restaVect(self.v1, self.v0)
+#         B = mate.restaVect(self.v2, self.v0)
+#         N = mate.productoCruz3D(A, B)
 
-        N = N / np.linalg.norm(N)
+#         N = mate.normalizar3D(N)
 
-        NdotRayDirection = np.dot(N, dir)
+#         NdotRayDirection = mate.productoPunto(N, dir)
 
-        if(abs(NdotRayDirection) < 0.001):
-            return None
+#         if(abs(NdotRayDirection) < 0.001):
+#             return None
 
-        D = np.dot(N, self.v0)
+#         D = mate.productoPunto(N, self.v0)
 
-        t = (np.dot(N, orig) + D) / NdotRayDirection
+#         t = (mate.productoPunto(N, orig) + D) / NdotRayDirection
 
-        if t < 0:
-            return None
+#         if t < 0:
+#             return None
 
-        # P = np.add(orig, np.multiply(t, dir))
-        P = np.multiply(np.add(orig, t), dir)
+#         # P = mate.sumaVec(orig, mate.multVect(t, dir))
+#         P = mate.multVect(mate.sumaVec(orig, t), dir)
 
-        edge0 = np.subtract(self.v1, self.v0)
-        edge1 = np.subtract(self.v2, self.v1)
-        edge2 = np.subtract(self.v0, self.v2)
+#         edge0 = mate.restaVect(self.v1, self.v0)
+#         edge1 = mate.restaVect(self.v2, self.v1)
+#         edge2 = mate.restaVect(self.v0, self.v2)
 
-        c0 = np.subtract(P, self.v0)
-        c1 = np.subtract(P, self.v1)
-        c2 = np.subtract(P, self.v2)
+#         c0 = mate.restaVect(P, self.v0)
+#         c1 = mate.restaVect(P, self.v1)
+#         c2 = mate.restaVect(P, self.v2)
 
-        cross0 = np.cross(edge0, c0)
-        cross1 = np.cross(edge1, c1)
-        cross2 = np.cross(edge2, c2)
+#         cross0 = mate.productoCruz3D(edge0, c0)
+#         cross1 = mate.productoCruz3D(edge1, c1)
+#         cross2 = mate.productoCruz3D(edge2, c2)
 
-        if (np.dot(N, cross0)) < 0:
-            return None
+#         if (mate.productoPunto(N, cross0)) < 0:
+#             return None
 
-        if (np.dot(N, cross1)) < 0:
-            return None
+#         if (mate.productoPunto(N, cross1)) < 0:
+#             return None
 
-        if (np.dot(N, cross2)) < 0:
-            return None
+#         if (mate.productoPunto(N, cross2)) < 0:
+#             return None
 
-        hit = np.add(orig, np.multiply(dir, t))
+#         hit = mate.sumaVec(orig, mate.multVect(dir, t))
 
-        return Intersect(distance=t,
-                         point=hit,
-                         normal=N,
-                         texCoords=None,
-                         sceneObject=self)
+#         return Intersect(distance=t,
+#                          point=hit,
+#                          normal=N,
+#                          texCoords=None,
+#                          sceneObject=self)
 
 
 class Triangle2(object):
@@ -294,56 +295,56 @@ class Triangle2(object):
 
     def ray_intersect(self, orig, dir):
 
-        A = np.subtract(self.v1, self.v0)
-        B = np.subtract(self.v2, self.v0)
-        N = np.cross(A, B)
+        A = mate.restaVect(self.v1, self.v0)
+        B = mate.restaVect(self.v2, self.v0)
+        N = mate.productoCruz3D(A, B)
 
-        denom = np.dot(N, N)
+        denom = mate.productoPunto(N, N)
 
-        NdotRayDirection = np.dot(N, dir)
+        NdotRayDirection = mate.productoPunto(N, dir)
 
         if(abs(NdotRayDirection) < 0.001):
             return None
 
-        d = np.dot(N, self.v0)
+        d = mate.productoPunto(N, self.v0)
 
-        t = (np.dot(N, orig) + d) / NdotRayDirection
+        t = (mate.productoPunto(N, orig) + d) / NdotRayDirection
 
         if t < 0:
             return None
 
-        # P = np.add(orig, np.multiply(t, dir))
-        P = np.multiply(np.add(orig, t), dir)
+        # P = mate.sumaVec(orig, mate.multVect(t, dir))
+        P = mate.multVect(mate.sumVectorxEscalar(orig, t), dir)
 
-        edge0 = np.subtract(self.v1, self.v0)
-        edge1 = np.subtract(self.v2, self.v1)
-        edge2 = np.subtract(self.v0, self.v2)
+        edge0 = mate.restaVect(self.v1, self.v0)
+        edge1 = mate.restaVect(self.v2, self.v1)
+        edge2 = mate.restaVect(self.v0, self.v2)
 
-        c0 = np.subtract(P, self.v0)
-        c1 = np.subtract(P, self.v1)
-        c2 = np.subtract(P, self.v2)
+        c0 = mate.restaVect(P, self.v0)
+        c1 = mate.restaVect(P, self.v1)
+        c2 = mate.restaVect(P, self.v2)
 
-        cross0 = np.cross(edge0, c0)
-        cross1 = np.cross(edge1, c1)
-        cross2 = np.cross(edge2, c2)
+        cross0 = mate.productoCruz3D(edge0, c0)
+        cross1 = mate.productoCruz3D(edge1, c1)
+        cross2 = mate.productoCruz3D(edge2, c2)
 
-        u = np.dot(N, cross1) / denom
-        v = np.dot(N, cross2) / denom
+        u = mate.productoPunto(N, cross1) / denom
+        v = mate.productoPunto(N, cross2) / denom
 
-        if (np.dot(N, cross0)) < 0:
+        if (mate.productoPunto(N, cross0)) < 0:
             return None
 
-        if (np.dot(N, cross1)) < 0:
+        if (mate.productoPunto(N, cross1)) < 0:
             return None
 
-        if (np.dot(N, cross2)) < 0:
+        if (mate.productoPunto(N, cross2)) < 0:
             return None
 
-        hit = np.add(orig, np.multiply(dir, t))
+        hit = mate.sumaVec(orig, mate.multVectorxEscalar(dir, t))
 
         uvs = (u, v)
 
-        N = N / np.linalg.norm(N)
+        N = mate.normalizar3D(N)
 
         return Intersect(distance=t,
                          point=hit,

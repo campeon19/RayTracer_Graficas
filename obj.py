@@ -1,7 +1,7 @@
 # Christian Daniel Perez De Leon  19710
 import struct
-import numpy as np
 from numpy import arccos, arctan2
+import matematica as mate
 
 
 def _color(r, g, b):
@@ -105,9 +105,9 @@ class EnvMap(object):
 
     def getColor(self, dir):
 
-        dir = dir / np.linalg.norm(dir)
+        dir = mate.normalizar3D(dir)
 
-        x = int(((arctan2(dir[2], dir[0]) / (2 * np.pi)) + 0.1) * self.width)
-        y = int(((arccos(-dir[1]) / np.pi) - 0.03) * self.height)
+        x = int(((arctan2(dir[2], dir[0]) / (2 * mate.pi)) + 0.1) * self.width)
+        y = int(((arccos(-dir[1]) / mate.pi) - 0.03) * self.height)
 
         return self.pixels[y][x]
