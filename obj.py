@@ -108,6 +108,6 @@ class EnvMap(object):
         dir = dir / np.linalg.norm(dir)
 
         x = int(((arctan2(dir[2], dir[0]) / (2 * np.pi)) + 0.1) * self.width)
-        y = int(((arccos(-dir[1]) / np.pi) - 0.05) * self.height)
+        y = int(((arccos(-dir[1]) / np.pi) - 0.03) * self.height)
 
         return self.pixels[y][x]

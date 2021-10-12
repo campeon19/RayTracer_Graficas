@@ -10,55 +10,47 @@ from figures import AABB, REFLECTIVE, TRANSPARENT, PointLight, Sphere, Material,
 # width = 1080
 # height = 540
 
-width = 256
-height = 156
+# width = 256
+# height = 156
 
-# width = 300
-# height = 512
-
-# width = 600
-# height = 1024
-
-# width = 1000
-# height = 1424
+width = 1920
+height = 1080
 
 rtx = Raytracer(width, height)
 
+# MATERIALES
 
 # nieve = Material( diffuse = _color(0.9372,0.882,0.78))
 # white = Material( diffuse = _color(1,1,1))
 # black = Material( diffuse = _color(0,0,0))
-carrot = Material(diffuse=(0.93, 0.57, 0.13))
+# carrot = Material(diffuse=(0.93, 0.57, 0.13))
 stone = Material(diffuse=(0.5451, 0.549, 0.4784), spec=64)
 # rojo = Material( diffuse = _color(1,0,0))
 grass = Material(diffuse=(0.4, 1, 0), spec=128)
 brick = Material(diffuse=(0.8, 0.25, 0.25), spec=32)
+yellow = Material(diffuse=(1, 1, 0), spec=32)
+brown = Material(diffuse=(0.588, 0.294, 0), spec=32)
+
+redBall = Material(diffuse=(1, 0, 0), spec=64, matType=REFLECTIVE)
+greenBall = Material(diffuse=(0, 1, 0), spec=64, matType=REFLECTIVE)
+blueBall = Material(diffuse=(0, 0, 1), spec=64, matType=REFLECTIVE)
+# star = Material(diffuse=(1, 1, 0), spec=128, matType=REFLECTIVE)
 
 
 glass = Material(spec=64, ior=1.5, matType=TRANSPARENT)
-glass2 = Material(spec=64, ior=1.8, matType=TRANSPARENT)
 
 mirror = Material(spec=128, matType=REFLECTIVE)
-mirror2 = Material(diffuse=(0, 0, 1), spec=64, matType=REFLECTIVE)
+# mirror2 = Material(diffuse=(0, 0, 1), spec=64, matType=REFLECTIVE)
 
 gift1 = Material(texture=Texture('Assets/gift-texture1.bmp'))
+gift2 = Material(texture=Texture('Assets/gift2.bmp'))
+gift3 = Material(texture=Texture('Assets/gift3.bmp'))
+gift4 = Material(texture=Texture('Assets/gift4.bmp'))
+tree = Material(texture=Texture('Assets/tree3.bmp'))
+tronco = Material(texture=Texture('Assets/tronco.bmp'))
 
 
-# rtx.scene.append( Sphere(V3(0,-3,-10), 2.3, nieve) )
-# rtx.scene.append( Sphere(V3(0,0.8,-11), 2, nieve) )
-# rtx.scene.append( Sphere(V3(0,3.7,-10), 1.4, nieve) )
-# rtx.scene.append( Sphere(V3(0,-2.5,-8), 0.5, black) )
-# rtx.scene.append( Sphere(V3(0,-0.7,-8), 0.35, black) )
-# rtx.scene.append( Sphere(V3(0,1,-8), 0.3, black) )
-# rtx.scene.append( Sphere(V3(0,3,-8), 0.3, carrot) )
-# rtx.scene.append( Sphere(V3(0.3,3.5,-8), 0.15, white) )
-# rtx.scene.append( Sphere(V3(-0.3,3.5,-8), 0.15, white) )
-# rtx.scene.append( Sphere(V3(0.27,3.1,-7), 0.06, black) )
-# rtx.scene.append( Sphere(V3(-0.27,3.1,-7), 0.06, black) )
-# rtx.scene.append( Sphere(V3(0.2,2.35,-8), 0.1, stone) )
-# rtx.scene.append( Sphere(V3(-0.2,2.35,-8), 0.1, stone) )
-# rtx.scene.append( Sphere(V3(-0.5,2.55,-8), 0.1, stone) )
-# rtx.scene.append( Sphere(V3(0.5,2.55,-8), 0.1, stone) )
+# LIGHT AND ENVIRONMENT MAP
 
 rtx.glClearColor(0.2, 0.6, 0.8)
 rtx.glClear()
@@ -67,22 +59,52 @@ rtx.envmap = EnvMap('Assets/envmap3.bmp')
 rtx.ambLight = AmbientLight(strength=0.1)
 rtx.dirLight = DirectionalLight(direction=V3(1, -1, -2), intensity=0.5)
 rtx.pointLights.append(PointLight(position=V3(0, 2, 0), intensity=0.5))
+rtx.pointLights.append(PointLight(position=V3(-5, 2.5, 0), intensity=0.8))
 
-# rtx.scene.append( Sphere(V3(-4,2,-8), 1, glass))
-# rtx.scene.append( Sphere(V3(0,2,-8), 1, glass2))
-# rtx.scene.append( Sphere(V3(4,2,-8), 1, mirror))
-# rtx.scene.append( Sphere(V3(-4,-2,-8), 1, mirror2))
-# rtx.scene.append( Sphere(V3(0,-2,-8), 1, carrot))
-# rtx.scene.append( Sphere(V3(4,-2,-8), 1, grass))
 
-# rtx.scene.append(AABB(V3(-1, -1, -5), V3(2, 1, 1), gift1))
+# OBJECTS
 
-# rtx.scene.append(Triangle(V3(0, 0, -5), 4, grass))
-# rtx.scene.append(Sphere(V3(3.5, -1, -6), 0.5, mirror))
+
+rtx.scene.append(AABB(V3(-1, -2.5, -6), V3(2, 1, 1), gift1))
+rtx.scene.append(AABB(V3(1.5, -2.7, -6), V3(0.7, 0.7, 0.7), gift4))
+rtx.scene.append(AABB(V3(4.5, -2.7, -6), V3(0.7, 0.7, 0.7), gift3))
+
+rtx.scene.append(AABB(V3(-3, -1, -7), V3(6, 0.1, 0.5), brown))
+
+rtx.scene.append(AABB(V3(-5, -0.55, -7), V3(1, 0.7, 0.2), gift1))
+rtx.scene.append(AABB(V3(-3.5, -0.5, -7), V3(0.7, 1, 0.5), gift2))
+rtx.scene.append(AABB(V3(-2.3, -0.3, -7), V3(0.7, 1.5, 0.5), gift3))
+rtx.scene.append(AABB(V3(-1, -0.72, -7), V3(1, 0.4, 0.5), gift4))
+
+
 rtx.scene.append(
-    Triangle2(V3(1, -1.5, -7), V3(6, -1.5, -7), V3(3.5, 4, -7), grass))
-# rtx.scene.append(AABB(V3(4, -3.5, -7), V3(0.5, 1, 0.01), stone))
+    Triangle2(V3(1, -2.5, -7), V3(6, -2.5, -7), V3(3.5, 4, -7), tree))
+rtx.scene.append(AABB(V3(3.5, -3, -7), V3(0.7, 1, 0.01), tronco))
+
+rtx.scene.append(Sphere(V3(3, -1.9, -6), 0.2, greenBall))
+rtx.scene.append(Sphere(V3(4.4, -1.5, -6), 0.2, redBall))
+rtx.scene.append(Sphere(V3(3, -1, -6), 0.2, blueBall))
+rtx.scene.append(Sphere(V3(1.6, -1.7, -6), 0.2, blueBall))
+rtx.scene.append(Sphere(V3(2.1, -0.7, -6), 0.2, redBall))
+rtx.scene.append(Sphere(V3(3.9, -0.4, -6), 0.2, greenBall))
+rtx.scene.append(Sphere(V3(2.9, 0, -6), 0.2, redBall))
+rtx.scene.append(Sphere(V3(3.7, 0.5, -6), 0.2, blueBall))
+rtx.scene.append(Sphere(V3(2.3, 1, -6), 0.2, greenBall))
+rtx.scene.append(Sphere(V3(3.3, 1.3, -6), 0.2, redBall))
+rtx.scene.append(Sphere(V3(3, 2, -6), 0.2, blueBall))
+rtx.scene.append(Sphere(V3(2.1, 0.1, -6), 0.2, greenBall))
+
+rtx.scene.append(
+    Triangle2(V3(2.7, 3, -6), V3(3.3, 3, -6), V3(3, 3.5, -6), yellow))
+rtx.scene.append(
+    Triangle2(V3(2.7, 3.3, -6), V3(3, 2.8, -6),  V3(3.3, 3.3, -6), yellow))
+
+rtx.scene.append(
+    Triangle2(V3(2.7, 3.3, -6), V3(3.3, 3.3, -6), V3(3, 2.8, -6), yellow))
+
+rtx.scene.append(Sphere(V3(-3, 2, -5), 0.7, glass))
+rtx.scene.append(Sphere(V3(-3.7, -2.1, -5), 0.5, mirror))
+
 
 rtx.glRender()
-
-rtx.glFinish('Pruebas.bmp')
+rtx.glFinish('Proyecto 2.bmp')

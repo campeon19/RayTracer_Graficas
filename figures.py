@@ -298,7 +298,7 @@ class Triangle2(object):
         B = np.subtract(self.v2, self.v0)
         N = np.cross(A, B)
 
-        N = N / np.linalg.norm(N)
+        denom = np.dot(N, N)
 
         NdotRayDirection = np.dot(N, dir)
 
@@ -327,6 +327,9 @@ class Triangle2(object):
         cross1 = np.cross(edge1, c1)
         cross2 = np.cross(edge2, c2)
 
+        u = np.dot(N, cross1) / denom
+        v = np.dot(N, cross2) / denom
+
         if (np.dot(N, cross0)) < 0:
             return None
 
@@ -338,8 +341,12 @@ class Triangle2(object):
 
         hit = np.add(orig, np.multiply(dir, t))
 
+        uvs = (u, v)
+
+        N = N / np.linalg.norm(N)
+
         return Intersect(distance=t,
                          point=hit,
                          normal=N,
-                         texCoords=None,
+                         texCoords=uvs,
                          sceneObject=self)
